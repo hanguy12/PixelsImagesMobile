@@ -6,14 +6,14 @@ import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 
-abstract class BaseViewModel<S : Any> : ViewModel() {
+abstract class BaseViewModel : ViewModel() {
 
-    private val _errorLiveEvent: MutableLiveData<Throwable> = MutableLiveData()
-    val errorLiveEvent: LiveData<Throwable> get() = _errorLiveEvent
+    private val _errorEvent: MutableLiveData<Throwable> = MutableLiveData()
+    val errorEvent: LiveData<Throwable> get() = _errorEvent
 
     private val compositeDisposable = CompositeDisposable()
 
-    abstract fun initState(): S
+    abstract fun initState(): Any
 
     override fun onCleared() {
         compositeDisposable.clear()
@@ -23,7 +23,7 @@ abstract class BaseViewModel<S : Any> : ViewModel() {
     fun Disposable.addToCompositeDisposable() = compositeDisposable.add(this)
 
     protected fun dispatchError(error: Throwable) {
-        _errorLiveEvent.value = error
+        _errorEvent.value = error
     }
 
 }
