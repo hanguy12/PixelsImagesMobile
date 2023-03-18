@@ -1,22 +1,36 @@
 package hn.single.imageapp.features.show_image.views
 
-import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import hn.single.imageapp.R
+import android.os.Handler
+import android.os.Looper
+import hn.single.imageapp.common.bases.BaseFragment
+import hn.single.imageapp.databinding.FragmentImagesBinding
+import hn.single.imageapp.features.show_image.viewmodels.ImagesFragmentViewModel
 
+class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentViewModel>() {
 
-class ImagesFragment : Fragment() {
-
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_images, container, false)
+    override fun getViewModelClass(): Class<ImagesFragmentViewModel> {
+        return ImagesFragmentViewModel::class.java
     }
 
+    override fun getViewBinding(): FragmentImagesBinding {
+        return FragmentImagesBinding.inflate(layoutInflater)
+    }
+
+    override fun useSharedViewModel(): Boolean = false
+
+    override fun initViews() {
+        showLoadingProgress(true)
+        Handler(Looper.getMainLooper()).postDelayed(
+            { showLoadingProgress(false) }, 3000
+        )
+        mViewBinding.textHome.text = "Home text ${mViewModel.isLoading}"
+    }
+
+    override fun observeView() {
+
+    }
+
+    override fun observeData() {
+
+    }
 }
