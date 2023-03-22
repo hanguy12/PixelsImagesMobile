@@ -16,7 +16,7 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
     open var useSharedViewModel: Boolean = false
     private val disposableContainer = CompositeDisposable()
     protected lateinit var mViewModel: VM
-    protected lateinit var mViewBinding: VB
+    protected var mViewBinding: VB? = null
 
     protected abstract fun getViewModelClass(): Class<VM>
 
@@ -34,6 +34,8 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
     abstract fun useSharedViewModel(): Boolean
 
     abstract fun initViews()
+
+    abstract fun initActions()
 
     abstract fun observeView()
 
@@ -60,7 +62,7 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return mViewBinding.root
+        return mViewBinding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -72,6 +74,7 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
 
     override fun onDestroyView() {
         super.onDestroyView()
+        mViewBinding = null
         //disposableContainer.clear()
     }
 
