@@ -16,8 +16,6 @@ abstract class BaseViewModel : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
 
-    abstract fun initState(): Any
-
     override fun onCleared() {
         compositeDisposable.clear()
         super.onCleared()
@@ -25,7 +23,7 @@ abstract class BaseViewModel : ViewModel() {
 
     fun Disposable.addToCompositeDisposable() = compositeDisposable.add(this)
 
-    protected fun dispatchError(error: Throwable) {
+    protected fun sendError(error: Throwable) {
         _errorEvent.value = error
     }
 

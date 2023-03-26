@@ -1,19 +1,26 @@
 package hn.single.imageapp.features.show_image.views
 
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
+import android.widget.Toast
 import hn.single.imageapp.common.bases.BaseFragment
+import hn.single.imageapp.common.utils.AppConstants
 import hn.single.imageapp.common.utils.Logger
 import hn.single.imageapp.databinding.FragmentImagesBinding
-import hn.single.imageapp.features.show_image.adapters.PagerAdapterPopular
+import hn.single.imageapp.features.show_image.adapters.ImageDetailAdapter
+import hn.single.imageapp.features.show_image.models.Media
+import hn.single.imageapp.features.show_image.utils.SearchObservable
 import hn.single.imageapp.features.show_image.viewmodels.ImagesFragmentViewModel
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentViewModel>() {
+
+    private var imageDetailAdapter = ImageDetailAdapter()
+    private var listImages = listOf<Media>()
+    private var isLoading = false
+    private var isLastPage = false
+    private var currentPage = AppConstants.DEFAULT_PAGE
 
     override fun getViewModelClass(): Class<ImagesFragmentViewModel> {
         return ImagesFragmentViewModel::class.java
@@ -26,90 +33,110 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
     override fun useSharedViewModel(): Boolean = false
 
     override fun initViews() {
-        showLoadingProgress(true)
-        Handler(Looper.getMainLooper()).postDelayed(
-            { showLoadingProgress(false) }, 3000
-        )
+        searchData("flo")
+        mViewBinding?.popularRecycler?.apply {
+            //val grid = GridLayoutManager(requireContext(), 1)
+            //val grid = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
+            /* val linearLayoutManager =
+                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)*/
+            val linearLayoutManager =
+                ImageDetailAdapter.ScaleLayoutManager(requireContext())
+            layoutManager = linearLayoutManager
+            adapter = imageDetailAdapter
 
+            /*val listenerScroll = object : PageScrollListener(linearLayoutManager) {
+                override fun isLoading(): Boolean = isLoading
 
+                override fun isLastItem(): Boolean = isLastPage
+
+                override fun loadMoreItems() {
+                    isLoading = true
+                    currentPage += 1
+                    loadNextPage()
+                }
+            }
+            addOnScrollListener(listenerScroll)*/
+        }
+        SearchObservable.fromViewSearch(mViewBinding?.inputSearch)
+            .debounce(1000, TimeUnit.MILLISECONDS)
+            .filter { it.trim().isNotEmpty() }
+            .distinctUntilChanged()
+            .switchMap { text ->
+                Observable.just(searchData(text)).delay(3000, TimeUnit.MILLISECONDS)
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe{
+                val data: List<Media>? = mViewModel.imagesSearch.value
+                Logger.d("SearchData ----- data: $data")
+            }.addToContainer()
+
+    }
+
+    private fun searchData(query: String){
+        mViewModel.searchImagesByText(query)
+        /*val data: List<Media>? = mViewModel.imagesSearch.value
+        Logger.d("SearchData -- $query --- data: $data")*/
+
+        //return data/*?.filter { it.contains(query, true) }*/
+
+    }
+
+    private fun loadNextPage() {
+        Logger.d("LoadMore page")
     }
 
     override fun initActions() {
-        mViewBinding?.inputSearch?.addTextChangedListener(object : TextWatcher {
+        Logger.d("initActions called")
+        imageDetailAdapter.itemClick = {
+            Toast.makeText(requireContext(), "Position click = $it", Toast.LENGTH_SHORT).show()
+        }
+        /*mViewBinding?.inputSearch?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = true
 
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                //TODO("Not yet implemented")
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Logger.d("onQueryTextChange(newText: String?) -- $newText")
+                newText?.let { searchData(it) }
+                return true
             }
+        })*/
+        /* mViewBinding?.inputSearch?.addTextChangedListener(object : TextWatcher {
 
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                //TODO("Not yet implemented")
-            }
+             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
 
-            override fun afterTextChanged(p0: Editable?) {
-                //TODO("Not yet implemented")
-            }
-        })
+             }
+
+             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+             }
+
+             override fun afterTextChanged(p0: Editable?) {
+
+             }
+         })*/
+
     }
 
     override fun observeView() {
-        mViewModel.getPopularCategories()
+        mViewModel.getPopularImagesHome(AppConstants.ID_IMAGES)
     }
 
     override fun observeData() {
-        mViewModel.popular.observe(viewLifecycleOwner) {
-            val collections = it.collections
-//            for (i in collections.indices) {
-            val pagerAdapter = PagerAdapterPopular(childFragmentManager, lifecycle)
-            for (i in collections.indices) {
-                mViewBinding?.tabLayout?.run {
-                    addTab(newTab().setText(collections[i].title))
-                    pagerAdapter.addFragment(ImageDetailFragment("1rvchkd"))
-                    //pagerAdapter.addFragment(ImageDetailFragment(collections[i].id))
-                }
-            }
-            mViewBinding?.viewPager2?.adapter = pagerAdapter
-            mViewBinding?.viewPager2?.offscreenPageLimit = collections.size
-            mViewBinding?.tabLayout?.tabGravity = TabLayout.GRAVITY_FILL
+        observeLoadingView()
+        observeListImages()
+    }
 
-            mViewBinding?.viewPager2?.addOnAttachStateChangeListener(object :
-                View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(p0: View) {}
+    private fun observeLoadingView() {
+        mViewModel.isLoading.observe(viewLifecycleOwner) {
+            Logger.d("isLoading == $it")
+            showLoadingProgress(it)
+        }
+    }
 
-                override fun onViewDetachedFromWindow(p0: View) {}
-            })
-
-            (TabLayout.TabLayoutOnPageChangeListener(mViewBinding?.tabLayout))
-//            mViewBinding?.viewPager2?.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(mViewBinding?.tabLayout))
-
-            mViewBinding?.tabLayout?.addOnTabSelectedListener(object :
-                TabLayout.OnTabSelectedListener {
-                override fun onTabReselected(tab: TabLayout.Tab?) {
-                    /****/
-                }
-
-                override fun onTabUnselected(tab: TabLayout.Tab?) {
-                    /****/
-                }
-
-                override fun onTabSelected(tab: TabLayout.Tab) {
-                    mViewBinding?.viewPager2?.currentItem = tab.position
-                }
-            })
-            /* if (collections.isNotEmpty()){
-                 mViewBinding?.tabLayout?.visibility = View.GONE
-             }else {
-                 mViewBinding?.tabLayout?.visibility = View.VISIBLE
-             }*/
-            val tabLayoutMediator = mViewBinding?.viewPager2?.let { it1 ->
-                mViewBinding?.tabLayout?.let { it2 ->
-                    TabLayoutMediator(it2, it1) { tab, position ->
-                        tab.text = collections[position].title
-                    }
-                }
-            }
-            tabLayoutMediator?.attach()
-
-            Logger.d("Data get: $it")
+    private fun observeListImages() {
+        mViewModel.images.observe(viewLifecycleOwner) {
+            listImages = it.media
+            imageDetailAdapter.loadDataToRecyclerView(listImages)
         }
     }
 }

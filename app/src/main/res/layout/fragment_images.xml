@@ -44,7 +44,7 @@
             android:layout_height="@dimen/dimen_44dp"
             android:layout_marginTop="4dp"
             android:background="@drawable/image_background_tablayout"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/textPopular"
             app:layout_scrollFlags="enterAlways"
             app:tabIndicatorColor="@color/purple_200"
@@ -53,12 +53,12 @@
             app:tabTextAppearance="@style/TabTextAppearance"
             app:tabTextColor="@color/tab_text_color"
             app:tabUnboundedRipple="false"
-            tools:visibility="visible" />
+            tools:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/popularRecycler"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/dimen_0dp"
+            android:layout_height="@dimen/dimen_200dp"
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
@@ -68,6 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
+            android:visibility="gone"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tabLayout" />

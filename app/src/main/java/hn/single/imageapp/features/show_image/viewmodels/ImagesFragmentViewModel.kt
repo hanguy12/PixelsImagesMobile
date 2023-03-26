@@ -1,50 +1,49 @@
 package hn.single.imageapp.features.show_image.viewmodels
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import hn.single.imageapp.common.bases.BaseViewModel
 import hn.single.imageapp.common.utils.AppConstants
 import hn.single.imageapp.common.utils.Logger
-import hn.single.imageapp.features.show_image.models.Popular
+import hn.single.imageapp.features.show_image.models.ImageDetail
+import hn.single.imageapp.features.show_image.models.Media
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 class ImagesFragmentViewModel : BaseViewModel() {
 
-    private val _popular: MutableLiveData<Popular> = MutableLiveData()
-    val popular: LiveData<Popular>
-        get() = _popular
+    val images: MutableLiveData<ImageDetail> = MutableLiveData()
+    val imagesSearch: MutableLiveData<List<Media>> = MutableLiveData()
+    var isLoading: MutableLiveData<Boolean> = MutableLiveData()
 
-    override fun initState(): ImagesFragmentState = ImagesFragmentState()
-
-    var isLoading = true
-
-    fun getPopularCategories() {
-        mRepository.getPopularCategories(AppConstants.API_KEY).subscribeOn(Schedulers.io())
+    fun getPopularImagesHome(id: String) {
+        mRepository.getPopularImages(AppConstants.API_KEY, id).subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread()).doOnSubscribe {
-                isLoading = true
+                isLoading.value = true
             }.doOnTerminate {
-                isLoading = false
-            }.subscribe({
-                _popular.postValue(it)
-                Logger.d("Popular Data get: $it")
-            }, {
-
-            }).addToCompositeDisposable()
-
-
-
-        mRepository.getImagesByIs(AppConstants.API_KEY, "1rvchkd").subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread()).doOnSubscribe {
-                isLoading = true
-            }.doOnTerminate {
-                isLoading = false
+                isLoading.value = false
             }.subscribe({
                 Logger.d("MediaInfo Data get: $it")
-                isLoading = false
+                images.value = it
+                isLoading.value = false
             }, {
-
+                sendError(it)
+                isLoading.value = false
             }).addToCompositeDisposable()
+    }
 
+    fun searchImagesByText(value: String) {
+        mRepository.searchImagesByText(AppConstants.API_KEY, value).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread()).doOnSubscribe {
+                isLoading.postValue(true)
+            }.doOnTerminate {
+                isLoading.postValue(false)
+            }.subscribe({
+                Logger.d("MediaInfo Data get: $it")
+                imagesSearch.value = it.media
+                isLoading.postValue(false)
+            }, {
+                sendError(it)
+                isLoading.postValue(false)
+            }).addToCompositeDisposable()
     }
 }

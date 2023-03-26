@@ -22,9 +22,10 @@ class ImageDetailFragment(val id: String) :
     override fun useSharedViewModel(): Boolean = false
 
     override fun initViews() {
-        mViewBinding?.collectionRecycler?.adapter = imageDetailAdapter
-        val grid = GridLayoutManager(requireContext(), 2)
+        val grid = GridLayoutManager(requireContext(), 1)
+//        val grid = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
         mViewBinding?.collectionRecycler?.layoutManager = grid
+        mViewBinding?.collectionRecycler?.adapter = imageDetailAdapter
     }
 
     override fun initActions() {

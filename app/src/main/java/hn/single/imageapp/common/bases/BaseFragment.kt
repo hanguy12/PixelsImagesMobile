@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 import androidx.viewbinding.ViewBinding
 import hn.single.imageapp.common.utils.Logger
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 
 abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fragment() {
 
@@ -41,7 +42,7 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
 
     abstract fun observeData()
 
-    //fun Disposable.addToContainer() = disposableContainer.add(this)
+    fun Disposable.addToContainer() = disposableContainer.add(this)
 
     private fun init() {
         mViewBinding = getViewBinding()
@@ -69,13 +70,14 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
         super.onViewCreated(view, savedInstanceState)
         observeData()
         initViews()
+        initActions()
         observeView()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         mViewBinding = null
-        //disposableContainer.clear()
+        disposableContainer.clear()
     }
 
 }

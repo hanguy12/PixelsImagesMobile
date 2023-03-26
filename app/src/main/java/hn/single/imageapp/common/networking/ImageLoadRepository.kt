@@ -17,4 +17,12 @@ class ImageLoadRepository {
     fun getImagesByIs(apiKey: String, id: String): Single<ImageDetail> {
         return RetrofitInstance.getRetrofit.getImagesById(apiKey, id)
     }
+
+    fun getPopularImages(apiKey: String, id: String): Single<ImageDetail> {
+        return RetrofitInstance.getRetrofit.getPopularImages(apiKey, id)
+    }
+
+    fun searchImagesByText(apiKey: String, value: String): Single<ImageDetail> {
+        return RetrofitInstance.getRetrofit.searchImagesByText(apiKey, value)
+    }
 }
