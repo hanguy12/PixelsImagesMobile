@@ -1,11 +1,14 @@
 package hn.single.imageapp.features.show_image.views
 
+import android.os.Bundle
 import android.widget.Toast
+import androidx.core.os.bundleOf
+import hn.single.imageapp.R
 import hn.single.imageapp.common.bases.BaseFragment
 import hn.single.imageapp.common.utils.AppConstants
 import hn.single.imageapp.common.utils.Logger
 import hn.single.imageapp.databinding.FragmentImagesBinding
-import hn.single.imageapp.features.show_image.adapters.ImageDetailAdapter
+import hn.single.imageapp.features.show_image.adapters.ImagesAdapter
 import hn.single.imageapp.features.show_image.models.Media
 import hn.single.imageapp.features.show_image.utils.SearchObservable
 import hn.single.imageapp.features.show_image.viewmodels.ImagesFragmentViewModel
@@ -16,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentViewModel>() {
 
-    private var imageDetailAdapter = ImageDetailAdapter()
+    private var imagesAdapter = ImagesAdapter()
     private var listImages = listOf<Media>()
     private var isLoading = false
     private var isLastPage = false
@@ -32,6 +35,8 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
 
     override fun useSharedViewModel(): Boolean = false
 
+    override fun initData(bundle: Bundle?)= Unit
+
     override fun initViews() {
         searchData("flo")
         mViewBinding?.popularRecycler?.apply {
@@ -39,10 +44,9 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
             //val grid = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
             /* val linearLayoutManager =
                  LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)*/
-            val linearLayoutManager =
-                ImageDetailAdapter.ScaleLayoutManager(requireContext())
+            val linearLayoutManager = ImagesAdapter.ScaleLayoutManager(requireContext())
             layoutManager = linearLayoutManager
-            adapter = imageDetailAdapter
+            adapter = imagesAdapter
 
             /*val listenerScroll = object : PageScrollListener(linearLayoutManager) {
                 override fun isLoading(): Boolean = isLoading
@@ -66,14 +70,14 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe{
+            .subscribe {
                 val data: List<Media>? = mViewModel.imagesSearch.value
                 Logger.d("SearchData ----- data: $data")
             }.addToContainer()
 
     }
 
-    private fun searchData(query: String){
+    private fun searchData(query: String) {
         mViewModel.searchImagesByText(query)
         /*val data: List<Media>? = mViewModel.imagesSearch.value
         Logger.d("SearchData -- $query --- data: $data")*/
@@ -88,8 +92,19 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
 
     override fun initActions() {
         Logger.d("initActions called")
-        imageDetailAdapter.itemClick = {
+        imagesAdapter.itemClick = {
             Toast.makeText(requireContext(), "Position click = $it", Toast.LENGTH_SHORT).show()
+            arguments?.putInt(AppConstants.POSITION_CLICK_HOME, it)
+            val listUrl = listImages.map { media ->
+                media.src?.original
+            }
+            fragmentNavController()?.navigate(
+                R.id.imageDetailFragment,
+                bundleOf(
+                    AppConstants.POSITION_CLICK_HOME to it,
+                    AppConstants.LIST_URL_IMAGES to listUrl
+                )
+            )
         }
         /*mViewBinding?.inputSearch?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = true
@@ -136,7 +151,7 @@ class ImagesFragment : BaseFragment<Any, FragmentImagesBinding, ImagesFragmentVi
     private fun observeListImages() {
         mViewModel.images.observe(viewLifecycleOwner) {
             listImages = it.media
-            imageDetailAdapter.loadDataToRecyclerView(listImages)
+            imagesAdapter.loadDataToRecyclerView(listImages)
         }
     }
 }

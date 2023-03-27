@@ -34,6 +34,8 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
 
     abstract fun useSharedViewModel(): Boolean
 
+    abstract fun initData(bundle: Bundle?)
+
     abstract fun initViews()
 
     abstract fun initActions()
@@ -55,7 +57,8 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        init()
+        Logger.d("onCreate")
+        //init()
     }
 
     override fun onCreateView(
@@ -63,12 +66,16 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        init()
+        Logger.d("onCreateView")
         return mViewBinding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Logger.d("onViewCreated")
         observeData()
+        initData(arguments)
         initViews()
         initActions()
         observeView()
@@ -76,6 +83,7 @@ abstract class BaseFragment<S : Any, VB : ViewBinding, VM : BaseViewModel> : Fra
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Logger.d("onDestroyView")
         mViewBinding = null
         disposableContainer.clear()
     }

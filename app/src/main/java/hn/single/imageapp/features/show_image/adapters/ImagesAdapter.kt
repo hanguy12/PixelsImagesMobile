@@ -3,6 +3,7 @@ package hn.single.imageapp.features.show_image.adapters
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,7 +13,7 @@ import hn.single.imageapp.R
 import hn.single.imageapp.databinding.LayoutImagesListBinding
 import hn.single.imageapp.features.show_image.models.Media
 
-class ImageDetailAdapter : RecyclerView.Adapter<ImageDetailAdapter.ImageViewHolder>() {
+class ImagesAdapter : RecyclerView.Adapter<ImagesAdapter.ImageViewHolder>() {
 
     private var listImage = listOf<Media>()
     var itemClick: ((Int) -> Unit)? = null
@@ -31,10 +32,7 @@ class ImageDetailAdapter : RecyclerView.Adapter<ImageDetailAdapter.ImageViewHold
                 itemClick?.invoke(position)
             }
             binding.image.let {
-                it.setOnClickListener {
-                    itemClick?.invoke(position)
-                }
-                val recyclerHeight = it.context.resources.getDimensionPixelSize(R.dimen.dimen_200dp)
+                val recyclerHeight = it.context.resources.getDimensionPixelSize(R.dimen.dimen_300dp)
                 val percent: Float = listImage[position].height?.toFloat()
                     ?.let { it1 -> listImage[position].width?.toFloat()?.div(it1) } ?: 1f
                 it.layoutParams =
@@ -42,7 +40,14 @@ class ImageDetailAdapter : RecyclerView.Adapter<ImageDetailAdapter.ImageViewHold
                         (recyclerHeight * percent).toInt(),
                         recyclerHeight
                     )
-                Glide.with(it.context).load(listImage[position].src?.original).into(it)
+                Glide.with(it.context).load(listImage[position].src?.original).thumbnail(
+                    Glide.with(it.context).load(
+                        AppCompatResources.getDrawable(
+                            it.context,
+                            R.drawable.ic_launcher
+                        )
+                    )
+                ).into(it)
             }
         }
 
