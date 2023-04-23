@@ -3,14 +3,13 @@ package hn.single.imageapp.features.show_image.adapters
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import hn.single.imageapp.R
 import hn.single.imageapp.databinding.LayoutImagesListBinding
+import hn.single.imageapp.features.show_image.io.ImageLoader
 import hn.single.imageapp.features.show_image.models.Media
 
 class ImagesAdapter : RecyclerView.Adapter<ImagesAdapter.ImageViewHolder>() {
@@ -31,23 +30,27 @@ class ImagesAdapter : RecyclerView.Adapter<ImagesAdapter.ImageViewHolder>() {
             binding.rootItem.setOnClickListener {
                 itemClick?.invoke(position)
             }
-            binding.image.let {
-                val recyclerHeight = it.context.resources.getDimensionPixelSize(R.dimen.dimen_300dp)
+            binding.image.let { imageView ->
+                val recyclerHeight =
+                    imageView.context.resources.getDimensionPixelSize(R.dimen.dimen_300dp)
                 val percent: Float = listImage[position].height?.toFloat()
                     ?.let { it1 -> listImage[position].width?.toFloat()?.div(it1) } ?: 1f
-                it.layoutParams =
+                imageView.layoutParams =
                     ConstraintLayout.LayoutParams(
                         (recyclerHeight * percent).toInt(),
                         recyclerHeight
                     )
-                Glide.with(it.context).load(listImage[position].src?.original).thumbnail(
-                    Glide.with(it.context).load(
-                        AppCompatResources.getDrawable(
-                            it.context,
-                            R.drawable.ic_launcher
-                        )
-                    )
-                ).into(it)
+                //imageView.fillImageHandler(listImage[position].src?.original.toString())
+                //imageView.fillImageByGlide(listImage[position].src?.original.toString())
+                ImageLoader(binding.image.context).displayImage(listImage[position].src?.original.toString(), binding.image)
+                /*fillImageWithCoroutine(
+                    imageView,
+                    listImage[position].src?.original.toString().also {
+                        Logger.d("Url = $it")
+                    })*/
+
+                //imageView.setImageBitmap(ImageHandle.fetchImage(listImage[position].src?.original.toString()))
+                //ImageHandle.setImageFromUrl(imageView, listImage[position].src?.original.toString())
             }
         }
 
